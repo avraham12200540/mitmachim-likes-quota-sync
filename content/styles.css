@@ -1,0 +1,121 @@
+/*
+ * styles.css - the quota meter. Scoped under #mt-likes-quota-widget so it can
+ * never bleed into the forum. Colours match the mitmachim.top blue palette.
+ */
+
+#mt-likes-quota-widget {
+  /* mitmachim / NodeBB persona blue */
+  --mtlq-blue: #0a58ca;
+  --mtlq-blue-light: #3d8bfd;
+  --mtlq-track: rgba(13, 110, 253, 0.08);
+  --mtlq-border: rgba(13, 110, 253, 0.35);
+  --mtlq-text: #0b2e6b;
+
+  position: fixed;
+  left: 14px;
+  top: 285px;
+  /* responsive height: never taller than the viewport, capped at 540px */
+  height: min(540px, calc(100vh - 320px));
+  width: 30px;
+  z-index: 9999;
+  pointer-events: auto;
+  box-sizing: border-box;
+  font-family: inherit;
+  /* do not capture scroll / selection of the forum */
+  user-select: none;
+}
+
+#mt-likes-quota-widget .mt-likes-quota-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--mtlq-border);
+  border-radius: 16px;
+  background: var(--mtlq-track);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+#mt-likes-quota-widget .mt-likes-quota-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(to top, var(--mtlq-blue), var(--mtlq-blue-light));
+  transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#mt-likes-quota-widget .mt-likes-quota-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--mtlq-text);
+  /* readable whether the fill is behind it or not */
+  text-shadow:
+    0 0 3px rgba(255, 255, 255, 0.95),
+    0 0 3px rgba(255, 255, 255, 0.95),
+    0 0 3px rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* small status dot at the top of the track */
+#mt-likes-quota-widget .mt-likes-quota-status {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* full */
+#mt-likes-quota-widget.mt-full .mt-likes-quota-fill {
+  background: linear-gradient(to top, #b02a37, #dc3545);
+}
+#mt-likes-quota-widget.mt-full .mt-likes-quota-text {
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.55), 0 0 3px rgba(0, 0, 0, 0.55);
+}
+
+/* sync states */
+#mt-likes-quota-widget.mt-error .mt-likes-quota-status,
+#mt-likes-quota-widget.mt-offline .mt-likes-quota-status {
+  background: #f0ad4e;
+  box-shadow: 0 0 0 2px rgba(240, 173, 78, 0.3);
+}
+#mt-likes-quota-widget.mt-loading .mt-likes-quota-status {
+  background: var(--mtlq-blue-light);
+  animation: mtlq-pulse 1s ease-in-out infinite;
+}
+@keyframes mtlq-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* disabled / logged-out */
+#mt-likes-quota-widget.mt-disabled {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+/* hide on narrow screens so it never overlaps content */
+@media (max-width: 1024px) {
+  #mt-likes-quota-widget { display: none; }
+}
+
+/* respect users who reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  #mt-likes-quota-widget .mt-likes-quota-fill { transition: none; }
+  #mt-likes-quota-widget.mt-loading .mt-likes-quota-status { animation: none; }
+}

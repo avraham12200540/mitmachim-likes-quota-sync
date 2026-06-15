@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Mitmachim Likes Quota Sync",
+  "version": "1.0.0",
+  "description": "מד לייקים יומי מסונכרן בין מחשבים לפורום מתמחים טופ (mitmachim.top).",
+  "minimum_chrome_version": "102",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://mitmachim.top/*",
+    "https://api.extsync.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mitmachim.top/*"],
+      "js": [
+        "content/config.js",
+        "content/user.js",
+        "content/api.js",
+        "content/detector.js",
+        "content/widget.js",
+        "content/content.js"
+      ],
+      "css": ["content/styles.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content/page-probe.js"],
+      "matches": ["https://mitmachim.top/*"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "מד לייקים יומי",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

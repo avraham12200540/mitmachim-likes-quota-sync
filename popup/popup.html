@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="popup.css" />
+  <title>מד לייקים יומי</title>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hdr">
+      <h1>מד לייקים יומי</h1>
+      <span id="sync-badge" class="badge badge-loading">טוען...</span>
+    </header>
+
+    <section class="summary">
+      <div class="big" id="today-count">-/20</div>
+      <div class="remain">נותרו <strong id="remaining">-</strong> לייקים</div>
+      <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
+    </section>
+
+    <section class="targets">
+      <h2>משתמשים שקיבלו לייקים היום</h2>
+      <ul id="targets-list" class="targets-list">
+        <li class="empty">אין עדיין נתונים</li>
+      </ul>
+    </section>
+
+    <section class="actions">
+      <div class="row">
+        <button id="btn-set-20" class="btn btn-primary">הגדר ל־20</button>
+        <button id="btn-reset" class="btn btn-danger">איפוס ל־0</button>
+      </div>
+      <div class="row manual">
+        <label for="manual-input">קביעה ידנית</label>
+        <input id="manual-input" type="number" min="0" max="20" step="1" value="0" />
+        <button id="btn-save" class="btn">שמור</button>
+      </div>
+    </section>
+
+    <details class="advanced">
+      <summary>הגדרות מתקדמות</summary>
+      <div class="adv-body">
+        <label for="api-base">כתובת שרת ה־API</label>
+        <input id="api-base" type="text" placeholder="https://api.extsync.com" />
+
+        <label for="token">טוקן הזדהות (Bearer)</label>
+        <input id="token" type="password" placeholder="טוקן מערכת הסנכרון הקיימת" />
+
+        <label for="dev-user">משתמש פיתוח (DEV ONLY)</label>
+        <input id="dev-user" type="text" placeholder="ריק בסביבת production" />
+
+        <button id="btn-save-settings" class="btn">שמור הגדרות</button>
+        <p class="hint">הטוקן נשמר מקומית ב־chrome.storage בלבד ונשלח רק לשרת שהוגדר.</p>
+      </div>
+    </details>
+
+    <div id="msg" class="msg" hidden></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

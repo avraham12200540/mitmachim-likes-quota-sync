@@ -1,0 +1,13 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*~
+.idea/
+.vscode/
+
+# local agent state (never publish)
+.claude/
+
+# build artifacts / packaging
+*.zip
+node_modules/
