@@ -18,31 +18,32 @@
   let observer = null;
   let loggedIn = false;
   let refreshing = false;
+  let currentState = null; // latest meter state, read synchronously by the detector
 
   // ---- state plumbing -----------------------------------------------------
 
   function renderFromState(state) {
     if (!state) return;
+    currentState = state;
     if (!loggedIn) { NS.widget.setDisabled(); return; }
     NS.widget.ensure();
     NS.widget.render(state);
   }
 
-  async function pullToday(reason) {
+  async function pullToday(reason, fresh) {
     if (!loggedIn || refreshing) return;
     refreshing = true;
     try {
       const user = NS.user.getCached();
-      // show loading only if we have nothing yet
       const cached = await NS.api.getCachedState();
       if (cached && cached.ok && cached.data) {
         renderFromState(Object.assign({}, cached.data));
       }
-      const res = await NS.api.getTodayState(user);
+      // The server derives today's count from the forum (no click-counting).
+      const res = await NS.api.getTodayState(user, !!fresh);
       if (res && res.ok && res.data) {
         renderFromState(res.data);
       } else if (res && res.error) {
-        // keep last cache visible, just flag the status
         const last = (cached && cached.data) || {};
         renderFromState(Object.assign({}, last, { syncStatus: last.likesToday != null ? 'error' : 'offline' }));
         NS.warn('getToday failed', res.error, '(', reason, ')');
@@ -51,26 +52,6 @@
       NS.warn('pullToday threw', e);
     } finally {
       refreshing = false;
-    }
-  }
-
-  async function onLikeEvent(ev) {
-    if (!loggedIn) return;
-    const user = NS.user.getCached() || {};
-    const payload = Object.assign({ forumUser: user }, ev);
-    const res = ev.action === 'increment'
-      ? await NS.api.incrementLike(payload)
-      : await NS.api.decrementLike(payload);
-
-    if (res && res.ok && res.data) {
-      renderFromState(res.data);
-    } else {
-      NS.warn('like sync failed', res && res.error);
-      // The SW queues failed increments/decrements as pendingEvents and retries
-      // on the next poll; just reflect the sync problem on the meter.
-      const cached = await NS.api.getCachedState();
-      const last = (cached && cached.ok && cached.data) || {};
-      renderFromState(Object.assign({}, last, { syncStatus: 'error' }));
     }
   }
 
@@ -149,7 +130,13 @@
     NS.user.init();
     NS.user.onUpdate(onUserUpdate);
 
-    NS.detector.init(onLikeEvent);
+    NS.detector.init({
+      getState: () => currentState,
+      // After a real like/un-like, re-sync from the forum (fresh, bypass cache).
+      onActivity: () => pullToday('like', true),
+      // A new like was blocked at the limit - tell the user on the widget.
+      onBlocked: (kind, info) => { try { NS.widget.flashBlocked(kind, info); } catch (e) { /* ignore */ } },
+    });
 
     document.addEventListener('visibilitychange', onVisibilityChange, false);
     try { chrome.storage.onChanged.addListener(onStorageChanged); } catch (e) { /* ignore */ }

@@ -208,7 +208,9 @@ function forumQuery(forumUser) {
 
 async function handleGetToday(payload) {
   await flushPending(); // opportunistic retry on every poll
-  const res = await apiFetch('/today', { query: forumQuery(payload && payload.forumUser) });
+  const query = forumQuery(payload && payload.forumUser) || {};
+  if (payload && payload.fresh) query.fresh = 1; // bypass the server's short forum cache
+  const res = await apiFetch('/today', { query });
   if (res.ok) {
     const cache = await writeCache(res.data, 'synced');
     return { ok: true, data: cache };

@@ -103,6 +103,32 @@
   50% { opacity: 1; }
 }
 
+/* "blocked at the limit" toast, shown to the right of the vertical bar */
+#mt-likes-quota-widget .mt-likes-quota-toast {
+  position: absolute;
+  left: calc(100% + 8px);
+  bottom: 0;
+  width: max-content;
+  max-width: 220px;
+  background: #b02a37;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+#mt-likes-quota-widget.mt-blocked .mt-likes-quota-track {
+  animation: mtlq-shake 0.3s ease;
+}
+@keyframes mtlq-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
 /* disabled / logged-out */
 #mt-likes-quota-widget.mt-disabled {
   opacity: 0.45;

@@ -31,7 +31,8 @@
       '  <div class="mt-likes-quota-fill"></div>' +
       '  <div class="mt-likes-quota-text">0/' + cfg.DAILY_LIMIT + '</div>' +
       '  <div class="mt-likes-quota-status" title=""></div>' +
-      '</div>';
+      '</div>' +
+      '<div class="mt-likes-quota-toast" hidden></div>';
     return root;
   }
 
@@ -100,10 +101,36 @@
     node.setAttribute('title', message || 'יש להתחבר לפורום כדי להציג את מד הלייקים');
   }
 
+  let toastTimer = null;
+
+  // Show a short message next to the meter when a like was blocked at the limit.
+  function flashBlocked(kind, info) {
+    const node = ensure();
+    if (!node) return;
+    const toast = node.querySelector('.mt-likes-quota-toast');
+    if (!toast) return;
+    info = info || {};
+    let msg;
+    if (kind === 'peruser') {
+      const who = info.username ? ('ל' + info.username) : 'למשתמש הזה';
+      msg = 'הגעת ל-' + (info.perUser || cfg.PER_USER_LIMIT) + ' לייקים ' + who + ' היום';
+    } else {
+      msg = 'הגעת ל-' + (info.limit || cfg.DAILY_LIMIT) + ' לייקים היום';
+    }
+    toast.textContent = msg;
+    toast.hidden = false;
+    node.classList.add('mt-blocked');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.hidden = true;
+      node.classList.remove('mt-blocked');
+    }, 3500);
+  }
+
   function remove() {
     const node = el();
     if (node) node.remove();
   }
 
-  NS.widget = { ensure, render, setDisabled, remove, ROOT_ID };
+  NS.widget = { ensure, render, setDisabled, remove, flashBlocked, ROOT_ID };
 })();

@@ -39,8 +39,8 @@
   }
 
   NS.api = {
-    getTodayState(forumUser) {
-      return send('MTLQ_GET_TODAY', { forumUser: forumUser || null });
+    getTodayState(forumUser, fresh) {
+      return send('MTLQ_GET_TODAY', { forumUser: forumUser || null, fresh: !!fresh });
     },
     incrementLike(payload) {
       return send('MTLQ_INCREMENT', payload);
