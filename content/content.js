@@ -120,6 +120,53 @@
     }
   }
 
+  // ---- observed forum vote API calls (vote-interceptor.js, main world) -----
+
+  function injectInterceptor() {
+    try {
+      const s = document.createElement('script');
+      s.src = chrome.runtime.getURL('content/vote-interceptor.js');
+      s.async = false;
+      s.onload = function () { s.remove(); };
+      (document.head || document.documentElement).appendChild(s);
+    } catch (e) { NS.warn('interceptor inject failed', e); }
+  }
+
+  function onWindowMessage(event) {
+    if (event.source !== window) return;
+    const d = event.data;
+    if (!d || d.type !== cfg.VOTE_EVENT || !d.__mtlq) return;
+    onVoteEvent(d);
+  }
+
+  function onVoteEvent(d) {
+    if (!loggedIn || !d) return;
+    const limit = (currentState && currentState.dailyLimit) || cfg.DAILY_LIMIT;
+    const status = Number(d.status) || 0;
+
+    if (status === 200) {
+      // A vote or un-vote actually registered on the forum.
+      if (d.method === 'DELETE' || d.delta === 0) {
+        NS.api.reportLimit(false); // an un-like frees a slot -> clear the cap flag
+      }
+      pullToday('vote', true); // re-sync the true count from the forum
+      return;
+    }
+
+    if (status >= 400) {
+      const msg = d.message || '';
+      if (cfg.dailyLimitHint && msg.indexOf(cfg.dailyLimitHint) !== -1) {
+        // Daily cap: the forum KNOWS we are at the limit -> snap to it.
+        NS.api.reportLimit(true);
+        renderFromState(Object.assign({}, currentState || {}, { likesToday: limit, dailyLimit: limit, syncStatus: 'synced' }));
+        NS.widget.flashBlocked('daily', { limit });
+      } else if (msg) {
+        NS.widget.flashBlocked('peruser', {});
+        pullToday('vote', true);
+      }
+    }
+  }
+
   // ---- init ---------------------------------------------------------------
 
   function initOnce() {
@@ -137,6 +184,9 @@
       // A new like was blocked at the limit - tell the user on the widget.
       onBlocked: (kind, info) => { try { NS.widget.flashBlocked(kind, info); } catch (e) { /* ignore */ } },
     });
+
+    injectInterceptor();
+    window.addEventListener('message', onWindowMessage, false);
 
     document.addEventListener('visibilitychange', onVisibilityChange, false);
     try { chrome.storage.onChanged.addListener(onStorageChanged); } catch (e) { /* ignore */ }

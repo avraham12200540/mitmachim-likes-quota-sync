@@ -54,6 +54,11 @@
     resetLikesToday(reason) {
       return send('MTLQ_RESET', { reason: reason || 'manual-reset' });
     },
+    // Tell the server the forum reported the daily-limit error (reached=true) or
+    // that an un-like freed a slot (reached=false).
+    reportLimit(reached) {
+      return send('MTLQ_LIMIT', { reached: !!reached });
+    },
     getCachedState() {
       return send('MTLQ_GET_CACHE', {});
     },

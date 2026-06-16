@@ -263,6 +263,12 @@ async function handleReset(payload) {
   return { ok: false, error: res.error, data: await markCacheStatus(res.status === 0 ? 'offline' : 'error') };
 }
 
+async function handleLimit(payload) {
+  const res = await apiFetch('/limit', { method: 'POST', body: { reached: !!(payload && payload.reached) } });
+  if (res.ok) return { ok: true, data: await writeCache(res.data, 'synced') };
+  return { ok: false, error: res.error, data: await markCacheStatus(res.status === 0 ? 'offline' : 'error') };
+}
+
 async function handleGetCache() {
   const s = await getLocal(KEYS.CACHE);
   return { ok: true, data: s[KEYS.CACHE] || null };
@@ -276,6 +282,7 @@ const ROUTES = {
   MTLQ_DECREMENT: (p) => handleMutation('decrement', p),
   MTLQ_SET: (p) => handleSet(p),
   MTLQ_RESET: (p) => handleReset(p),
+  MTLQ_LIMIT: (p) => handleLimit(p),
   MTLQ_GET_CACHE: () => handleGetCache(),
 };
 

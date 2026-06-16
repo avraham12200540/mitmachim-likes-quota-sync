@@ -42,6 +42,12 @@
     // --- postMessage type used between the page-probe and the content script ---
     PROBE_REQUEST: 'MT_LIKES_USER_REQUEST',
     PROBE_RESPONSE: 'MT_LIKES_USER_DATA',
+    VOTE_EVENT: 'MT_VOTE_EVENT', // from vote-interceptor.js (observed vote API calls)
+
+    // Substring that identifies the forum's DAILY-limit rejection message
+    // ("ניתן להצביע בעד רק 20 פעמים ביום"). Other 400s are treated as a generic
+    // (e.g. per-user) block. Adjust if the forum wording changes.
+    dailyLimitHint: 'ביום',
 
     /*
      * SELECTORS - adjust these if mitmachim.top / NodeBB markup differs.

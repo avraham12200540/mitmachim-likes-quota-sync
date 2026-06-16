@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mitmachim Likes Quota Sync",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "מד לייקים יומי מסונכרן בין מחשבים לפורום מתמחים טופ (mitmachim.top).",
   "minimum_chrome_version": "102",
   "permissions": ["storage", "cookies"],
@@ -31,7 +31,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content/page-probe.js"],
+      "resources": ["content/page-probe.js", "content/vote-interceptor.js"],
       "matches": ["https://mitmachim.top/*"]
     }
   ],
