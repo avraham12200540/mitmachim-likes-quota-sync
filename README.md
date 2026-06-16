@@ -51,19 +51,24 @@ worker מבצע את ה-fetch בפועל. יתרון נוסף: הטוקן נשמ
 3. **Load unpacked** ובוחרים את תיקיית `extension/`.
 4. נכנסים ל-`https://mitmachim.top` ומתחברים לחשבון.
 
-## הגדרת כתובת ה-API והטוקן
+## זיהוי משתמש (forum login) - בלי הגדרות
+
+ברירת המחדל: התוסף מזהה אותך אוטומטית לפי **ההתחברות שלך ל-mitmachim.top**. ה-
+service worker קורא את ה-session cookie של הפורום ושולח אותו לשרת, שמאמת אותו מול
+NodeBB (`/api/self`) ומקשר את המכסה ל-uid המאומת. כלומר: מי שמחובר לפורום מקבל
+סנכרון **בלי טוקן ובלי שום הגדרה**. אותו משתמש פורום = אותה ספירה בכל מחשב.
+
+## כתובת API / טוקן (אופציונלי)
 
 ברירת המחדל של כתובת ה-API היא `https://api.extsync.com`. אפשר לשנות בלי לבנות
-מחדש את התוסף:
+מחדש את התוסף - אייקון התוסף ← **הגדרות מתקדמות**:
 
-1. לוחצים על אייקון התוסף ← **הגדרות מתקדמות**.
-2. **כתובת שרת ה-API** - למשל `http://localhost:8000` לפיתוח.
-3. **טוקן הזדהות (Bearer)** - הטוקן של מערכת ExtSync הקיימת (ראו
-   `INTEGRATION.he.md`). נשמר מקומית ב-`chrome.storage.local` בלבד.
-4. **משתמש פיתוח (DEV ONLY)** - לשימוש מול שרת פיתוח שבו הופעל `LIKES_QUOTA_DEV_AUTH`.
-   להשאיר ריק בפרודקשן.
+1. **כתובת שרת ה-API** - למשל `http://localhost:8000` לפיתוח.
+2. **טוקן הזדהות (Bearer)** - *אופציונלי*. fallback לזיהוי כשאינך מחובר לפורום,
+   או לשימוש אדמין. אם קיים גם cookie של הפורום - זהות הפורום גוברת.
+3. **משתמש פיתוח (DEV ONLY)** - לשרת פיתוח עם `LIKES_QUOTA_DEV_AUTH=true`. ריק בפרודקשן.
 
-לחלופין, אפשר לערוך את ברירות המחדל ב-`content/config.js` ו-`background/service-worker.js`.
+לחלופין, אפשר לערוך ברירות מחדל ב-`content/config.js` ו-`background/service-worker.js`.
 
 ---
 
@@ -142,9 +147,13 @@ chrome.storage.local.set({ MTLQ_DEBUG: true });
 ---
 
 ## אבטחה ופרטיות
-- הרשאות: `storage` + `host_permissions` ל-mitmachim.top ולשרת ה-API בלבד. אין
-  `tabs`, `cookies`, `history`.
-- אין סודות בקוד; הטוקן נשמר ב-`chrome.storage.local` ונשלח רק לשרת שהוגדר.
+- הרשאות: `storage` + `cookies` + `host_permissions` ל-mitmachim.top ולשרת
+  ה-API בלבד. אין `tabs`, `history`.
+- הרשאת `cookies` משמשת אך ורק לקריאת ה-session cookie (`express.sid`) של
+  mitmachim.top, שמועבר לשרת שלך כדי לאמת את זהות הפורום מול NodeBB
+  (`/api/self`). כך ה-uid מאומת על-ידי הפורום עצמו ולא נסמך על הלקוח. ה-cookie
+  נשלח רק לשרת ה-API שהוגדר, ב-HTTPS, ולא נשמר (רק hash שלו לקאש קצר).
+- אין סודות בקוד; טוקן ExtSync הוא אופציונלי (fallback) ונשמר ב-`chrome.storage.local`.
 - ה-probe קורא רק נתוני משתמש ציבוריים מ-NodeBB ולא משנה דבר בעמוד.
 
 ראו [`INTEGRATION.he.md`](INTEGRATION.he.md) לחיבור מול מודול השרת ולפרטי ה-API.

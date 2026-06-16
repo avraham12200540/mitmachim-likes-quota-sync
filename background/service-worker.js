@@ -55,6 +55,28 @@ async function getConfig() {
   };
 }
 
+// Read the user's mitmachim.top NodeBB session cookie (httpOnly - only the
+// cookies API can see it). The server forwards it to NodeBB /api/self to verify
+// the forum identity, so no ExtSync token is needed for a logged-in forum user.
+const FORUM_COOKIE = { url: 'https://mitmachim.top/', name: 'express.sid' };
+
+function getForumCookie() {
+  return new Promise((resolve) => {
+    try {
+      chrome.cookies.get(FORUM_COOKIE, (c) => {
+        if (chrome.runtime.lastError) { resolve(null); return; }
+        resolve(c && c.value ? c.value : null);
+      });
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+function b64utf8(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
 // ---- networking ------------------------------------------------------------
 
 function buildUrl(apiBase, prefix, path, query) {
@@ -78,6 +100,10 @@ async function apiFetch(path, { method = 'GET', body = null, query = null } = {}
   const cfg = await getConfig();
   const headers = { Accept: 'application/json' };
   if (body) headers['Content-Type'] = 'application/json';
+  // Primary identity: the verified forum login (server confirms it with NodeBB).
+  const forumCookie = await getForumCookie();
+  if (forumCookie) headers['X-Forum-Session'] = b64utf8(forumCookie);
+  // Optional fallback: an ExtSync token (admin / when not logged into the forum).
   if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token;
   // DEV-ONLY: ignored by the server in production (gated behind a flag there).
   if (cfg.devUser) headers['X-Dev-Quota-User'] = cfg.devUser;

@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Mitmachim Likes Quota Sync",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "מד לייקים יומי מסונכרן בין מחשבים לפורום מתמחים טופ (mitmachim.top).",
   "minimum_chrome_version": "102",
-  "permissions": ["storage"],
+  "permissions": ["storage", "cookies"],
   "host_permissions": [
     "https://mitmachim.top/*",
     "https://api.extsync.com/*"
