@@ -87,7 +87,11 @@
       status.title = 'מסונכרן';
     }
 
-    node.setAttribute('title', 'נתת ' + today + ' מתוך ' + limit + ' לייקים היום');
+    let title = 'נתת ' + today + ' מתוך ' + limit + ' לייקים';
+    if (today >= limit && state.resetsInSeconds != null) {
+      title += ' · הלייק הבא מתפנה בעוד ' + fmtDuration(state.resetsInSeconds);
+    }
+    node.setAttribute('title', title);
   }
 
   function setDisabled(message) {
@@ -103,6 +107,16 @@
 
   let toastTimer = null;
 
+  // "3ש 20ד" style relative duration for when the next like frees up.
+  function fmtDuration(seconds) {
+    seconds = Math.max(0, Math.floor(Number(seconds) || 0));
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return h + 'ש ' + m + 'ד';
+    if (m > 0) return m + ' דקות';
+    return 'פחות מדקה';
+  }
+
   // Show a short message next to the meter when a like was blocked at the limit.
   function flashBlocked(kind, info) {
     const node = ensure();
@@ -113,9 +127,12 @@
     let msg;
     if (kind === 'peruser') {
       const who = info.username ? ('ל' + info.username) : 'למשתמש הזה';
-      msg = 'הגעת ל-' + (info.perUser || cfg.PER_USER_LIMIT) + ' לייקים ' + who + ' היום';
+      msg = 'הגעת ל-' + (info.perUser || cfg.PER_USER_LIMIT) + ' לייקים ' + who;
     } else {
-      msg = 'הגעת ל-' + (info.limit || cfg.DAILY_LIMIT) + ' לייקים היום';
+      msg = 'הגעת ל-' + (info.limit || cfg.DAILY_LIMIT) + ' לייקים';
+    }
+    if (info.resetsInSeconds != null) {
+      msg += ' · מתפנה בעוד ' + fmtDuration(info.resetsInSeconds);
     }
     toast.textContent = msg;
     toast.hidden = false;

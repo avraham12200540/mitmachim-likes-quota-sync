@@ -145,23 +145,23 @@
     const status = Number(d.status) || 0;
 
     if (status === 200) {
-      // A vote or un-vote actually registered on the forum.
-      if (d.method === 'DELETE' || d.delta === 0) {
-        NS.api.reportLimit(false); // an un-like frees a slot -> clear the cap flag
-      }
-      pullToday('vote', true); // re-sync the true count from the forum
+      // The forum accepted the vote/un-vote -> we were below the cap. Clear any
+      // sticky clamp, then re-sync the true rolling count from the forum.
+      NS.api.reportLimit(false);
+      pullToday('vote', true);
       return;
     }
 
     if (status >= 400) {
       const msg = d.message || '';
+      const resetsInSeconds = currentState && currentState.resetsInSeconds;
       if (cfg.dailyLimitHint && msg.indexOf(cfg.dailyLimitHint) !== -1) {
         // Daily cap: the forum KNOWS we are at the limit -> snap to it.
         NS.api.reportLimit(true);
         renderFromState(Object.assign({}, currentState || {}, { likesToday: limit, dailyLimit: limit, syncStatus: 'synced' }));
-        NS.widget.flashBlocked('daily', { limit });
+        NS.widget.flashBlocked('daily', { limit, resetsInSeconds });
       } else if (msg) {
-        NS.widget.flashBlocked('peruser', {});
+        NS.widget.flashBlocked('peruser', { resetsInSeconds });
         pullToday('vote', true);
       }
     }
@@ -182,7 +182,12 @@
       // After a real like/un-like, re-sync from the forum (fresh, bypass cache).
       onActivity: () => pullToday('like', true),
       // A new like was blocked at the limit - tell the user on the widget.
-      onBlocked: (kind, info) => { try { NS.widget.flashBlocked(kind, info); } catch (e) { /* ignore */ } },
+      onBlocked: (kind, info) => {
+        try {
+          const extra = { resetsInSeconds: currentState && currentState.resetsInSeconds };
+          NS.widget.flashBlocked(kind, Object.assign(extra, info));
+        } catch (e) { /* ignore */ }
+      },
     });
 
     injectInterceptor();
